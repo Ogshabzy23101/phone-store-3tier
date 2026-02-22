@@ -1,0 +1,27 @@
+services:
+  db:
+    image: postgres:15
+    container_name: phonestore_db
+    environment:
+      POSTGRES_USER: phonestore_admin
+      POSTGRES_PASSWORD: phonestore_password
+      POSTGRES_DB: phonestore_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - phonestore_db_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ../../backend
+    container_name: phonestore_backend
+    environment:
+      PORT: "5001"
+      DATABASE_URL: postgres://phonestore_admin:phonestore_password@db:5432/phonestore_db
+    ports:
+      - "5001:5001"
+    depends_on:
+      - db
+
+volumes:
+  phonestore_db_data:
