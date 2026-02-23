@@ -22,6 +22,24 @@ services:
       - "5001:5001"
     depends_on:
       - db
+  
+  frontend:
+    build:
+      context: ../../frontend
+      dockerfile: Dockerfile.dev
+    container_name: phonestore_frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    volumes:
+      - ../../frontend:/app
+      - /app/node_modules
+    
 
 volumes:
   phonestore_db_data:
+   
+networks:
+  default:
+    name: phonestore_network
