@@ -18,10 +18,27 @@ services:
     environment:
       PORT: "5001"
       DATABASE_URL: postgres://phonestore_admin:phonestore_password@db:5432/phonestore_db
-    ports:
-      - "5001:5001"
+      db_host: phonestore_db
     depends_on:
       - db
+  
+  frontend:
+    build:
+      context: ../../frontend
+      dockerfile: Dockerfile.dev
+    container_name: phonestore_frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    volumes:
+      - ../../frontend:/app
+      - /app/node_modules
+    
 
 volumes:
   phonestore_db_data:
+   
+networks:
+  default:
+    name: phonestore_network
