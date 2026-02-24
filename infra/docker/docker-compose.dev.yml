@@ -19,8 +19,6 @@ services:
       PORT: "5001"
       DATABASE_URL: postgres://phonestore_admin:phonestore_password@db:5432/phonestore_db
       db_host: phonestore_db
-    ports:
-      - "5001:5001"
     depends_on:
       - db
   
