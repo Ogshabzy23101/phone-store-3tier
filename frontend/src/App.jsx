@@ -1,34 +1,44 @@
-import { useState, useEffect } from "react";
-import "./App.css";
+import { useEffect, useState } from "react";
+import { fetchProducts } from "./api/products";
 
-function App() {
-  const [product, setProduct] = useState([]);
-  const [error, setError] = useState("");
+export default function App() {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
-    fetch("/api/products")
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error("Failed to fetch products");
-        }
-        return res.json();
-      })
-      .then((data) => setProduct(data))
-      .catch((err) => setError(err.message));
+    let cancelled = false;
+
+    async function load() {
+      try {
+        setLoading(true);
+        const data = await fetchProducts();
+        if (!cancelled) setProducts(data);
+      } catch (err) {
+        if (!cancelled) setErrorMsg(err.message || "Failed to fetch products");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (
-    <div style={{ padding: 20 }}>
-      <h1>Products store (api test)</h1>
-      {error && <p style={{ color: "red" }}>Error: {error}</p>}
+    <div style={{ maxWidth: 900, margin: "40px auto", padding: "0 16px" }}>
+      <h1>Phone Store (React)</h1>
 
-      {product.length === 0 && !error ? (
-        <p>Loading products...</p>
-      ) : (
+      {loading && <p>Loading products…</p>}
+      {errorMsg && <p style={{ color: "crimson" }}>Error: {errorMsg}</p>}
+
+      {!loading && !errorMsg && (
         <ul>
-          {product.map((prod) => (
-            <li key={prod.id}>
-              {prod.name} {prod.brand} - gbp{prod.price_gbp}{" "}
+          {products.map((p) => (
+            <li key={p.id}>
+              <strong>{p.name}</strong> — {p.brand} — £{p.price_gbp}
             </li>
           ))}
         </ul>
@@ -36,5 +46,3 @@ function App() {
     </div>
   );
 }
-
-export default App;
