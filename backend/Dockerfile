@@ -11,10 +11,13 @@ RUN npm ci
 FROM node:20-alpine AS runtime
 #working directory
 WORKDIR /app
+ENV NODE_ENV=production
 #copy node_modules from build stage
-COPY --from=build /app/node_modules /app/node_modules
+COPY --from=build /app/node_modules ./node_modules
 #copy source code
 COPY . .
+#remove dev dependencies
+RUN npm prune --omit=dev
 #expose port
 EXPOSE 5000
 #start the application

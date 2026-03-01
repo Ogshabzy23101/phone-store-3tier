@@ -1,0 +1,41 @@
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      # backend
+      - name: build and push backend Docker image
+        uses: docker/build-push-action@v3
+        with:
+          context: ./backend
+          push: true
+          file: Dockerfile
+          tags: |
+            ogshabzy231/phone-store-backend:latest
+            ogshabzy231/phone-store-backend:${{ github.sha }}
+      # frontend
+      - name: build and push frontend Docker image
+        uses: docker/build-push-action@v3
+        with:
+          context: ./frontend
+          file: Dockerfile.dev
+          push: true
+          tags: |
+            ogshabzy231/phone-store-frontend:latest
+            ogshabzy231/phone-store-frontend:${{ github.sha }}
