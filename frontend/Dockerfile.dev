@@ -1,13 +1,19 @@
-FROM node:20-alpine
-
+#stage 1 build stage
+FROM node:20-alpine AS build
+#working directory
 WORKDIR /app
-
-COPY package*.json ./
-
+#copy package.json and package-lock.json
+COPY package*.json /app/
+#install dependencies
 RUN npm ci
-
+#copy source code
 COPY . .
+#build the application
+RUN npm run build
 
-EXPOSE 5173
-
-CMD [ "npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173" ]
+#stage 2 runtime stage
+FROM nginx:alpine AS runtime
+WORKDIR /usr/share/nginx/html
+COPY  --from=build /app/dist/ /usr/share/nginx/html/
+EXPOSE 80
+CMD [ "nginx", "-g", "daemon off;" ]
