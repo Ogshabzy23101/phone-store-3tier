@@ -27,8 +27,8 @@ jobs:
           push: true
           file: ./backend/Dockerfile
           tags: |
-            ogshabzy231/phone-store-backend:latest
-            ogshabzy231/phone-store-backend:${{ github.sha }}
+            ogshabzy23101/phone-store-backend:latest
+            ogshabzy23101/phone-store-backend:${{ github.sha }}
       # frontend
       - name: build and push frontend Docker image
         uses: docker/build-push-action@v6
@@ -37,5 +37,5 @@ jobs:
           file: ./frontend/Dockerfile.dev
           push: true
           tags: |
-            ogshabzy231/phone-store-frontend:latest
-            ogshabzy231/phone-store-frontend:${{ github.sha }}
+            ogshabzy23101/phone-store-frontend:latest
+            ogshabzy23101/phone-store-frontend:${{ github.sha }}
