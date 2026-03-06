@@ -1,0 +1,7 @@
+- name: Setup Docker
+  hosts: web
+  become: true
+
+  roles:
+    - common
+    - web

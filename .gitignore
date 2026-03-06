@@ -33,3 +33,22 @@ logs/
 
 # Docker
 *.pid
+
+# Terraform
+# Terraform
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+terraform.tfvars
+terraform.tfvars.json
+
+# Ansible
+*.retry
+ansible.log
+ansible/inventory/*.ini

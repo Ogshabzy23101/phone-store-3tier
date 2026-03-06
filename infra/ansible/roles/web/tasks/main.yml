@@ -1,0 +1,64 @@
+- name: install docker
+  apt:
+    name: docker.io
+    state: present
+    update_cache: yes
+
+- name: install docker compose v2 plugin directory
+  file:
+    path: /usr/local/lib/docker/cli-plugins
+    state: directory
+    mode: '0755'
+
+- name: install docker compose v2
+  get_url:
+    url: https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64
+    dest: /usr/local/lib/docker/cli-plugins/docker-compose
+    mode: '0755'
+
+- name: start docker
+  service:
+    name: docker
+    state: started
+    enabled: yes  
+
+- name: add user to docker group
+  user:
+    name: "{{ ansible_user }}"
+    groups: docker
+    append: yes
+
+- name: reset ssh connection
+  meta: reset_connection
+
+- name: create web directory
+  file:
+    path: /home/ubuntu/web/
+    state: directory
+    owner: "ubuntu"
+    group: "ubuntu"
+    mode: '0755'
+
+- name: copy docker-compose file
+  copy:
+    src: /Users/shabzy/Desktop/DevOps/phone-store-3tier/infra/docker/docker-compose.prod.yml
+    dest: /home/ubuntu/web/docker-compose.prod.yml
+    owner: "ubuntu"
+    group: "ubuntu"
+    mode: '0644'
+
+- name: create .env file
+  copy:
+    content: 
+      postgres_user=phonestore_admin
+      postgres_password=phonestore_password
+      postgres_db=phonestore_db
+    dest: /home/ubuntu/web/.env
+    owner: "ubuntu"
+    group: "ubuntu"
+    mode: '0644'
+
+- name: run docker-compose
+  command: docker-compose --env-file .env -f docker-compose.prod.yml up -d
+  args:
+    chdir: /home/ubuntu/web/
