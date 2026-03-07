@@ -19,16 +19,16 @@
         mode: '0644'
 
     - name: validate docker-compose file
-      command: docker-compose -f /home/ubuntu/web/docker-compose.prod.yml config
+      command: docker compose -f /home/ubuntu/web/docker-compose.prod.yml config
       register: compose_config
       failed_when: compose_config.rc != 0
 
     - name: pull latest images
-      command: docker-compose -f /home/ubuntu/web/docker-compose.prod.yml pull
+      command: docker compose -f /home/ubuntu/web/docker-compose.prod.yml pull
       args:
         chdir: /home/ubuntu/web/
 
     - name: run docker-compose
-      command: docker-compose --env-file .env -f docker-compose.prod.yml up -d
+      command: docker compose -f docker-compose.prod.yml up -d
       args:
         chdir: /home/ubuntu/web/ 
