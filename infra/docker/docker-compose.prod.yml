@@ -15,7 +15,7 @@ services:
       timeout: 5s
       retries: 5
   backend:
-    image: ogshabzy23101/phone-store-backend:latest
+    image: ogshabzy23101/phone-store-backend:${IMAGE_TAG}
     container_name: phonestore_backend
     environment:
       PORT: "5000"
@@ -31,7 +31,7 @@ services:
     restart: unless-stopped 
 
   frontend:
-    image: ogshabzy23101/phone-store-frontend:latest
+    image: ogshabzy23101/phone-store-frontend:${IMAGE_TAG}
     container_name: phonestore_frontend
     depends_on:
       backend:
