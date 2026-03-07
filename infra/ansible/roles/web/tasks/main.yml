@@ -39,14 +39,6 @@
     group: "ubuntu"
     mode: '0755'
 
-- name: copy docker-compose file
-  copy:
-    src: /Users/shabzy/Desktop/DevOps/phone-store-3tier/infra/docker/docker-compose.prod.yml
-    dest: /home/ubuntu/web/docker-compose.prod.yml
-    owner: "ubuntu"
-    group: "ubuntu"
-    mode: '0644'
-
 - name: create .env file
   copy:
     content: 
