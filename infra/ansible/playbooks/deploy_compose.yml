@@ -12,7 +12,7 @@
 
     - name: copy docker-compose file
       copy:
-        src: infra/docker/docker-compose.prod.yml
+        src: ../../docker/docker-compose.prod.yml
         dest: /home/ubuntu/web
         owner: "ubuntu"
         group: "ubuntu"
