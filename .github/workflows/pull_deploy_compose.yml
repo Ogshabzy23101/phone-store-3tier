@@ -1,20 +1,38 @@
-name: ssh into ec2 and run docker compose file
+name: Deploy compose with Ansible
+
 on:
   push:
     branches: [main]
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: SSH and run docker compose
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }} # @security: EC2_HOST secret required
-          username: ${{ secrets.EC2_USER }} # @security: EC2_USER secret required
-          key: ${{ secrets.EC2_SSH_KEY }} # @security: EC2_SSH_KEY secret required
-          script: |
-            cd /home/ubuntu/web
-            docker compose down
-            docker compose -f docker-compose.prod.yml pull
-            docker compose -f docker-compose.prod.yml up -d
-            docker image prune -f
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Ansible
+        run: |
+          sudo apt update
+          sudo apt install -y ansible
+
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Create inventory
+        run: |
+          mkdir -p infra/ansible/inventory
+          cat > infra/ansible/inventory/hosts.ini <<EOF
+          [web]
+          prod ansible_host=${{ secrets.EC2_HOST }} ansible_user=${{ secrets.EC2_USER }} ansible_ssh_private_key_file=~/.ssh/id_rsa
+          EOF
+
+      - name: Run deploy playbook
+        run: |
+          cd infra/ansible
+          ansible-playbook -i inventory/hosts.ini playbooks/deploy_compose.yml
