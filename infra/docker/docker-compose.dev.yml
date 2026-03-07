@@ -50,7 +50,3 @@ services:
 
 volumes:
   phonestore_db_data:
-
-networks:
-  default:
-    name: phonestore_network
