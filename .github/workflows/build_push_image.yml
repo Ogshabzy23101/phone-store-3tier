@@ -34,7 +34,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./frontend
-          file: ./frontend/Dockerfile.dev
+          file: ./frontend/Dockerfile.prod
           push: true
           tags: |
             ogshabzy23101/phone-store-frontend:latest
