@@ -46,7 +46,13 @@
       args:
         chdir: "{{ app_dir }}"
 
-    - name: Run docker-compose
+    - name: stop existing containers
+      command: docker compose --env-file .env -f docker-compose.prod.yml down
+      args:
+        chdir: "{{ app_dir }}"
+      ignore_errors: true
+
+    - name: run docker-compose
       command: docker compose --env-file .env -f docker-compose.prod.yml up -d --remove-orphans
       args:
         chdir: "{{ app_dir }}"
