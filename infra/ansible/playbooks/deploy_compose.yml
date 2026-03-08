@@ -1,34 +1,63 @@
 - name: Deploy Docker Compose
   hosts: web
   become: true
-  tasks:
-    - name: ensure app directory exists
-      file:
-        path: /home/ubuntu/web
-        state: directory
-        owner: "ubuntu"
-        group: "ubuntu"
-        mode: '0755'
+  vars:
+    app_dir: /home/ubuntu/web
 
-    - name: copy docker-compose file
+  tasks:
+    - name: Ensure app directory exists
+      file:
+        path: "{{ app_dir }}"
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: "0755"
+
+    - name: Copy docker-compose file
       copy:
         src: ../../docker/docker-compose.prod.yml
-        dest: /home/ubuntu/web
-        owner: "ubuntu"
-        group: "ubuntu"
-        mode: '0644'
+        dest: "{{ app_dir }}/docker-compose.prod.yml"
+        owner: ubuntu
+        group: ubuntu
+        mode: "0644"
 
-    - name: validate docker-compose file
-      command: docker compose -f /home/ubuntu/web/docker-compose.prod.yml config
+    - name: Create/update .env file
+      copy:
+        dest: "{{ app_dir }}/.env"
+        owner: ubuntu
+        group: ubuntu
+        mode: "0600"
+        content: |
+          POSTGRES_USER=phonestore_admin
+          POSTGRES_PASSWORD=phonestore_password
+          POSTGRES_DB=phonestore_db
+          IMAGE_TAG={{ image_tag }}
+
+    - name: Validate docker-compose file
+      command: docker compose --env-file .env -f docker-compose.prod.yml config
+      args:
+        chdir: "{{ app_dir }}"
       register: compose_config
+      changed_when: false
       failed_when: compose_config.rc != 0
 
-    - name: pull latest images
-      command: docker compose -f /home/ubuntu/web/docker-compose.prod.yml pull
+    - name: Pull exact tagged images
+      command: docker compose --env-file .env -f docker-compose.prod.yml pull
       args:
-        chdir: /home/ubuntu/web/
+        chdir: "{{ app_dir }}"
 
-    - name: run docker-compose
-      command: docker compose -f docker-compose.prod.yml up -d
+    - name: Run docker-compose
+      command: docker compose --env-file .env -f docker-compose.prod.yml up -d --remove-orphans
       args:
-        chdir: /home/ubuntu/web/ 
+        chdir: "{{ app_dir }}"
+
+    - name: Show running services
+      command: docker compose --env-file .env -f docker-compose.prod.yml ps
+      args:
+        chdir: "{{ app_dir }}"
+      register: compose_ps
+      changed_when: false
+
+    - name: Print compose status
+      debug:
+        var: compose_ps.stdout_lines

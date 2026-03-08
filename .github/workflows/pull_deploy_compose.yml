@@ -38,4 +38,5 @@ jobs:
       - name: Run deploy playbook
         run: |
           cd infra/ansible
-          ansible-playbook -i inventory/hosts.ini playbooks/deploy_compose.yml
+          ansible-playbook -i inventory/hosts.ini playbooks/deploy_compose.yml \
+            --extra-vars "image_tag=${{ github.event.workflow_run.head_sha }}"
