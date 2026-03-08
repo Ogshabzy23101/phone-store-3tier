@@ -39,18 +39,6 @@
     group: "ubuntu"
     mode: '0755'
 
-- name: create .env file
-  copy:
-    content: 
-      postgres_user=phonestore_admin
-      postgres_password=phonestore_password
-      postgres_db=phonestore_db
-      IMAGE_TAG=latest
-    dest: /home/ubuntu/web/.env
-    owner: "ubuntu"
-    group: "ubuntu"
-    mode: '0644'
-
 - name: run docker-compose
   command: docker-compose --env-file .env -f docker-compose.prod.yml up -d
   args:
