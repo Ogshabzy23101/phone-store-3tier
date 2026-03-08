@@ -1,0 +1,26 @@
+name: end to end deployment verification
+
+on:
+  workflow_run:
+    workflows: ["Deploy compose with Ansible"]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    if: ${{github.event.workflow_run.conclusion == 'success'}}
+    runs-on: ubuntu latest
+
+    steps:
+      - name: verify frontend is reachable
+        run: |
+          curl -fs http://${{secrets.EC2_HOST}} > /dev/null
+
+      - name: verify backend readiness
+        run: |
+          curl -fs http://${{secrets.EC2_HOST}}/ready > /dev/null
+      - name: verify end to end product flow
+        run: |
+          response=$(curl -fs http://${{secrets.EC2_HOST}}/api/products)
+          echo "$response"
+          echo "$response" | grep -q "iPhone"
