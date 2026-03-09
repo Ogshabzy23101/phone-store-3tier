@@ -8,6 +8,7 @@ services:
       POSTGRES_DB: phonestore_db
     volumes:
       - phonestore_db_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U phonestore_admin -d phonestore_db"]

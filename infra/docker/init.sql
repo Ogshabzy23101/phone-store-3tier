@@ -1,0 +1,14 @@
+CREATE TABLE IF NOT EXISTS products (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  brand TEXT NOT NULL,
+  price_gbp NUMERIC(10,2) NOT NULL,
+  image_url TEXT
+);
+
+INSERT INTO products (name, brand, price_gbp, image_url)
+VALUES
+  ('iPhone 15', 'Apple', 799.00, ''),
+  ('Galaxy S24', 'Samsung', 699.00, ''),
+  ('Pixel 8', 'Google', 599.00, '')
+ON CONFLICT DO NOTHING;
