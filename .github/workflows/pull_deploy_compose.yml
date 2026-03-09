@@ -35,8 +35,11 @@ jobs:
           prod ansible_host=${{ secrets.EC2_HOST }} ansible_user=${{ secrets.EC2_USER }} ansible_ssh_private_key_file=~/.ssh/id_rsa
           EOF
 
+      - name: read version.txt
+        run: echo "IMAGE_TAG=$(cat version.txt)" >> $GITHUB_ENV
+
       - name: Run deploy playbook
         run: |
           cd infra/ansible
           ansible-playbook -i inventory/hosts.ini playbooks/deploy_compose.yml \
-            --extra-vars "image_tag=${{ github.event.workflow_run.head_sha }}"
+            --extra-vars "image_tag=${{env.IMAGE_TAG}}"
