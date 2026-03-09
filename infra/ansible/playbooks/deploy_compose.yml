@@ -41,16 +41,21 @@
       changed_when: false
       failed_when: compose_config.rc != 0
 
-    - name: Pull exact tagged images
-      command: docker compose --env-file .env -f docker-compose.prod.yml pull
-      args:
-        chdir: "{{ app_dir }}"
+    
 
     - name: stop existing containers
       command: docker compose --env-file .env -f docker-compose.prod.yml down
       args:
         chdir: "{{ app_dir }}"
       ignore_errors: true
+
+    - name: Remove unused docker images
+      command: docker image prune -a -f
+
+    - name: Pull exact tagged images
+      command: docker compose --env-file .env -f docker-compose.prod.yml pull
+      args:
+        chdir: "{{ app_dir }}"
 
     - name: run docker-compose
       command: docker compose --env-file .env -f docker-compose.prod.yml up -d --remove-orphans
