@@ -20,6 +20,10 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Read version
+        id: version
+        run: echo "VERSION=$(cat version.txt)" >> $GITHUB_ENV
       # backend
       - name: build and push backend Docker image
         uses: docker/build-push-action@v6
@@ -28,7 +32,7 @@ jobs:
           push: true
           file: ./backend/Dockerfile
           tags: |
-            ogshabzy23101/phone-store-backend:latest
+            ogshabzy23101/phone-store-backend:${{env.VERSION}}
             ogshabzy23101/phone-store-backend:${{ github.sha }}
       # frontend
       - name: build and push frontend Docker image
@@ -38,5 +42,5 @@ jobs:
           file: ./frontend/Dockerfile.prod
           push: true
           tags: |
-            ogshabzy23101/phone-store-frontend:latest
+            ogshabzy23101/phone-store-frontend:${{env.VERSION}}
             ogshabzy23101/phone-store-frontend:${{ github.sha }}
