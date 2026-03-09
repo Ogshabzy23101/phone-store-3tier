@@ -6,12 +6,22 @@ const { Pool } = require("pg");
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.get('/ready', (req, res) => {
- res.status(200).json({ status: 'ok' });
-});
 
 const pool = new Pool({
  connectionString: process.env.DATABASE_URL,
+});
+
+app.get("/health", (req, res) => {
+ res.status(200).json({ status: "ok" });
+});
+
+app.get("/ready", async (req, res) => {
+ try {
+  await pool.query("SELECT 1");
+  res.status(200).json({ status: "ready" });
+ } catch (error) {
+  res.status(500).json({ status: "not ready", error: error.message });
+ }
 });
 
 app.get("/api/products", async (req, res) => {
