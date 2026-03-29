@@ -1,5 +1,27 @@
-export async function fetchProducts() {
- const res = await fetch("/api/products");
- if (!res.ok) throw new Error(`Failed to fetch products (${res.status})`);
- return res.json();
+export async function fetchProducts(category) {
+  const searchParams = new URLSearchParams();
+
+  if (category && category !== "all") {
+    searchParams.set("category", category);
+  }
+
+  const response = await fetch(
+    `/api/products${searchParams.toString() ? `?${searchParams.toString()}` : ""}`
+  );
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch products (${response.status})`);
+  }
+
+  return response.json();
+}
+
+export async function fetchProductById(productId) {
+  const response = await fetch(`/api/products/${productId}`);
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch product (${response.status})`);
+  }
+
+  return response.json();
 }
