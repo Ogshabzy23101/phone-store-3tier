@@ -1,0 +1,54 @@
+name: Require version bump for app changes
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  check-version:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch base branch
+        run: git fetch origin "${{ github.base_ref }}"
+
+      - name: Check changed files
+        id: changed
+        run: |
+          CHANGED_FILES=$(git diff --name-only "origin/${{ github.base_ref }}"...HEAD)
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+
+          NEEDS_VERSION_BUMP=false
+
+          while IFS= read -r file; do
+            case "$file" in
+              frontend/*|backend/*|infra/k8s/*|infra/docker/*|Dockerfile|docker-compose*.yml|docker-compose*.yaml)
+                NEEDS_VERSION_BUMP=true
+                break
+                ;;
+            esac
+          done <<< "$CHANGED_FILES"
+
+          echo "needs_version_bump=$NEEDS_VERSION_BUMP" >> "$GITHUB_OUTPUT"
+
+      - name: Ensure version.txt changed
+        if: steps.changed.outputs.needs_version_bump == 'true'
+        run: |
+          if git diff --quiet "origin/${{ github.base_ref }}"...HEAD -- version.txt; then
+            echo "App/deployment files changed but version.txt was not updated."
+            exit 1
+          fi
+
+      - name: Show version
+        if: steps.changed.outputs.needs_version_bump == 'true'
+        run: cat version.txt
+
+      - name: Skip message
+        if: steps.changed.outputs.needs_version_bump != 'true'
+        run: echo "No app/deployment changes detected. version.txt bump not required."

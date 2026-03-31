@@ -6,15 +6,38 @@ data:
   init.sql: |-
     CREATE TABLE IF NOT EXISTS products (
       id SERIAL PRIMARY KEY,
+      sku TEXT UNIQUE,
       name TEXT NOT NULL,
       brand TEXT NOT NULL,
-      price_gbp NUMERIC(10,2) NOT NULL,
-      image_url TEXT
+      category TEXT NOT NULL DEFAULT 'phones',
+      description TEXT NOT NULL DEFAULT '',
+      price_gbp NUMERIC(10, 2) NOT NULL,
+      image_url TEXT NOT NULL DEFAULT '',
+      stock_qty INTEGER NOT NULL DEFAULT 0,
+      featured BOOLEAN NOT NULL DEFAULT FALSE,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 
-    INSERT INTO products (name, brand, price_gbp, image_url)
-    VALUES
-      ('iPhone 15', 'Apple', 799.00, ''),
-      ('Galaxy S24', 'Samsung', 699.00, ''),
-      ('Pixel 8', 'Google', 599.00, '')
-    ON CONFLICT DO NOTHING;
+    CREATE UNIQUE INDEX IF NOT EXISTS products_sku_key ON products (sku);
+
+    CREATE TABLE IF NOT EXISTS orders (
+      id SERIAL PRIMARY KEY,
+      customer_name TEXT NOT NULL,
+      customer_email TEXT NOT NULL,
+      customer_address TEXT NOT NULL,
+      customer_city TEXT NOT NULL,
+      customer_postcode TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'submitted',
+      total_gbp NUMERIC(10,2) NOT NULL,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS order_items (
+      id SERIAL PRIMARY KEY,
+      order_id INTEGER NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+      product_id INTEGER NOT NULL REFERENCES products(id),
+      product_name TEXT NOT NULL,
+      unit_price_gbp NUMERIC(10,2) NOT NULL,
+      quantity INTEGER NOT NULL,
+      line_total_gbp NUMERIC(10,2) NOT NULL
+    );

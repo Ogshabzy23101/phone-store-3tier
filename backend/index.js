@@ -151,98 +151,6 @@ function formatMoney(value) {
 }
 
 async function initializeDatabase() {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS products (
-      id SERIAL PRIMARY KEY,
-      sku TEXT UNIQUE,
-      name TEXT NOT NULL,
-      brand TEXT NOT NULL,
-      category TEXT NOT NULL DEFAULT 'phones',
-      description TEXT NOT NULL DEFAULT '',
-      price_gbp NUMERIC(10, 2) NOT NULL,
-      image_url TEXT NOT NULL DEFAULT '',
-      stock_qty INTEGER NOT NULL DEFAULT 0,
-      featured BOOLEAN NOT NULL DEFAULT FALSE,
-      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-
-  await pool.query(`
-    ALTER TABLE products
-    ADD COLUMN IF NOT EXISTS sku TEXT,
-    ADD COLUMN IF NOT EXISTS category TEXT NOT NULL DEFAULT 'phones',
-    ADD COLUMN IF NOT EXISTS description TEXT NOT NULL DEFAULT '',
-    ADD COLUMN IF NOT EXISTS image_url TEXT NOT NULL DEFAULT '',
-    ADD COLUMN IF NOT EXISTS stock_qty INTEGER NOT NULL DEFAULT 0,
-    ADD COLUMN IF NOT EXISTS featured BOOLEAN NOT NULL DEFAULT FALSE,
-    ADD COLUMN IF NOT EXISTS created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-  `);
-
-  await pool.query(`
-    CREATE UNIQUE INDEX IF NOT EXISTS products_sku_key ON products (sku)
-  `);
-
-  for (const product of seededProducts) {
-    await pool.query(
-      `
-        UPDATE products
-        SET
-          sku = $1,
-          brand = $3,
-          category = $4,
-          description = $5,
-          price_gbp = $6,
-          image_url = $7,
-          stock_qty = $8,
-          featured = $9
-        WHERE name = $2 AND (sku IS NULL OR sku = '')
-      `,
-      [
-        product.sku,
-        product.name,
-        product.brand,
-        product.category,
-        product.description,
-        formatMoney(product.priceGbp),
-        product.imageUrl,
-        product.stockQty,
-        product.featured,
-      ]
-    );
-  }
-
-  await pool.query(`
-    UPDATE products
-    SET sku = 'legacy-' || id
-    WHERE sku IS NULL OR sku = ''
-  `);
-
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS orders (
-      id SERIAL PRIMARY KEY,
-      customer_name TEXT NOT NULL,
-      customer_email TEXT NOT NULL,
-      customer_address TEXT NOT NULL,
-      customer_city TEXT NOT NULL,
-      customer_postcode TEXT NOT NULL,
-      status TEXT NOT NULL DEFAULT 'submitted',
-      total_gbp NUMERIC(10, 2) NOT NULL,
-      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS order_items (
-      id SERIAL PRIMARY KEY,
-      order_id INTEGER NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
-      product_id INTEGER NOT NULL REFERENCES products(id),
-      product_name TEXT NOT NULL,
-      unit_price_gbp NUMERIC(10, 2) NOT NULL,
-      quantity INTEGER NOT NULL,
-      line_total_gbp NUMERIC(10, 2) NOT NULL
-    )
-  `);
-
   for (const product of seededProducts) {
     await pool.query(
       `
@@ -283,6 +191,7 @@ async function initializeDatabase() {
     );
   }
 }
+
 
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok" });
