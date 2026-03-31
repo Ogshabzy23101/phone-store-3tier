@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: ogshabzy23101/phone-store-frontend:latest        
+          image: ogshabzy23101/phone-store-frontend:v2.2   
           ports:
             - containerPort: 80
           volumeMounts:
