@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: ogshabzy23101/phone-store-backend:latest
+          image: ogshabzy23101/phone-store-backend:v2.2
           ports:
             - containerPort: 5000
           env:

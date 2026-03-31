@@ -11,187 +11,9 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
-const seededProducts = [
-  {
-    sku: "apple-iphone-15",
-    name: "iPhone 15",
-    brand: "Apple",
-    category: "phones",
-    description:
-      "A reliable everyday flagship with a bright display, great cameras, and strong battery life.",
-    priceGbp: 799,
-    imageUrl: "",
-    stockQty: 14,
-    featured: true,
-  },
-  {
-    sku: "samsung-galaxy-s24",
-    name: "Galaxy S24",
-    brand: "Samsung",
-    category: "phones",
-    description:
-      "Compact Android flagship with a vivid screen, fast performance, and useful camera features.",
-    priceGbp: 699,
-    imageUrl: "",
-    stockQty: 18,
-    featured: true,
-  },
-  {
-    sku: "google-pixel-8",
-    name: "Pixel 8",
-    brand: "Google",
-    category: "phones",
-    description:
-      "Clean Android experience with smart software features and dependable point-and-shoot cameras.",
-    priceGbp: 599,
-    imageUrl: "",
-    stockQty: 12,
-    featured: false,
-  },
-  {
-    sku: "oneplus-12",
-    name: "OnePlus 12",
-    brand: "OnePlus",
-    category: "phones",
-    description:
-      "Fast charging, smooth performance, and plenty of storage for users who want strong value.",
-    priceGbp: 649,
-    imageUrl: "",
-    stockQty: 9,
-    featured: false,
-  },
-  {
-    sku: "apple-macbook-air-13-m3",
-    name: "MacBook Air 13 M3",
-    brand: "Apple",
-    category: "laptops",
-    description:
-      "Lightweight laptop with long battery life, a sharp display, and strong day-to-day performance.",
-    priceGbp: 1099,
-    imageUrl: "",
-    stockQty: 7,
-    featured: true,
-  },
-  {
-    sku: "dell-xps-13",
-    name: "Dell XPS 13",
-    brand: "Dell",
-    category: "laptops",
-    description:
-      "Premium Windows ultrabook with a compact design, crisp screen, and great portability.",
-    priceGbp: 999,
-    imageUrl: "",
-    stockQty: 6,
-    featured: false,
-  },
-  {
-    sku: "lenovo-thinkpad-e14",
-    name: "ThinkPad E14",
-    brand: "Lenovo",
-    category: "laptops",
-    description:
-      "Practical business laptop with solid keyboard comfort and reliable performance for office work.",
-    priceGbp: 849,
-    imageUrl: "",
-    stockQty: 11,
-    featured: false,
-  },
-  {
-    sku: "anker-65w-usb-c-charger",
-    name: "65W USB-C Charger",
-    brand: "Anker",
-    category: "accessories",
-    description:
-      "Compact fast charger that can power most phones, tablets, and many modern laptops.",
-    priceGbp: 39,
-    imageUrl: "",
-    stockQty: 30,
-    featured: false,
-  },
-  {
-    sku: "logitech-mx-master-3s",
-    name: "MX Master 3S",
-    brand: "Logitech",
-    category: "accessories",
-    description:
-      "Comfortable wireless productivity mouse with precise tracking and quiet clicks.",
-    priceGbp: 99,
-    imageUrl: "",
-    stockQty: 16,
-    featured: true,
-  },
-  {
-    sku: "sony-wh-1000xm5",
-    name: "WH-1000XM5",
-    brand: "Sony",
-    category: "accessories",
-    description:
-      "Noise-cancelling headphones with strong sound quality for work, travel, and focus sessions.",
-    priceGbp: 329,
-    imageUrl: "",
-    stockQty: 10,
-    featured: false,
-  },
-  {
-    sku: "samsung-t7-1tb-ssd",
-    name: "T7 Portable SSD 1TB",
-    brand: "Samsung",
-    category: "accessories",
-    description:
-      "Portable storage option for backups, large files, and moving projects between devices.",
-    priceGbp: 119,
-    imageUrl: "",
-    stockQty: 20,
-    featured: false,
-  },
-];
-
 function formatMoney(value) {
   return Number(value).toFixed(2);
 }
-
-async function initializeDatabase() {
-  for (const product of seededProducts) {
-    await pool.query(
-      `
-        INSERT INTO products (
-          sku,
-          name,
-          brand,
-          category,
-          description,
-          price_gbp,
-          image_url,
-          stock_qty,
-          featured
-        )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-        ON CONFLICT (sku)
-        DO UPDATE SET
-          name = EXCLUDED.name,
-          brand = EXCLUDED.brand,
-          category = EXCLUDED.category,
-          description = EXCLUDED.description,
-          price_gbp = EXCLUDED.price_gbp,
-          image_url = EXCLUDED.image_url,
-          stock_qty = EXCLUDED.stock_qty,
-          featured = EXCLUDED.featured
-      `,
-      [
-        product.sku,
-        product.name,
-        product.brand,
-        product.category,
-        product.description,
-        formatMoney(product.priceGbp),
-        product.imageUrl,
-        product.stockQty,
-        product.featured,
-      ]
-    );
-  }
-}
-
 
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok" });
@@ -280,13 +102,7 @@ app.get("/api/products/:id", async (req, res) => {
 app.post("/api/orders", async (req, res) => {
   const customer = req.body?.customer ?? {};
   const rawItems = Array.isArray(req.body?.items) ? req.body.items : [];
-  const customerFields = [
-    "name",
-    "email",
-    "address",
-    "city",
-    "postcode",
-  ];
+  const customerFields = ["name", "email", "address", "city", "postcode"];
 
   for (const field of customerFields) {
     if (typeof customer[field] !== "string" || customer[field].trim() === "") {
@@ -306,7 +122,10 @@ app.post("/api/orders", async (req, res) => {
   }));
 
   const invalidItem = items.find(
-    (item) => !Number.isInteger(item.productId) || !Number.isInteger(item.quantity) || item.quantity < 1
+    (item) =>
+      !Number.isInteger(item.productId) ||
+      !Number.isInteger(item.quantity) ||
+      item.quantity < 1
   );
 
   if (invalidItem) {
@@ -345,9 +164,7 @@ app.post("/api/orders", async (req, res) => {
       const product = productsById.get(item.productId);
 
       if (item.quantity > product.stock_qty) {
-        throw new Error(
-          `Only ${product.stock_qty} units left for ${product.name}`
-        );
+        throw new Error(`Only ${product.stock_qty} units left for ${product.name}`);
       }
 
       const unitPrice = Number(product.price_gbp);
@@ -440,8 +257,7 @@ app.post("/api/orders", async (req, res) => {
     console.error(error);
 
     return res.status(400).json({
-      error:
-        error.message || "Unable to place the order right now",
+      error: error.message || "Unable to place the order right now",
     });
   } finally {
     client.release();
@@ -450,13 +266,14 @@ app.post("/api/orders", async (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-initializeDatabase()
+pool
+  .query("SELECT 1")
   .then(() => {
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
   })
   .catch((error) => {
-    console.error("Failed to initialize database", error);
+    console.error("Failed to connect to database", error);
     process.exit(1);
   });
