@@ -15,7 +15,8 @@ spec:
       serviceAccountName: backend-sa
       containers:
         - name: backend
-          image: ogshabzy23101/phone-store-backend:v2.2
+          image: ogshabzy23101/phone-store-backend:v3.2
+          imagePullPolicy: Always
           ports:
             - containerPort: 5000
           env:
@@ -42,3 +43,5 @@ spec:
 
             - name: DB_PORT
               value: "5432"
+            - name: DATABASE_URL
+              value: postgres://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)
