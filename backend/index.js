@@ -1,4 +1,5 @@
 require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
 const { Pool } = require("pg");
@@ -6,17 +7,33 @@ const promClient = require("prom-client");
 
 const app = express();
 
-const collectDefaultMetrics = promClient.collectDefaultMetrics;
-collectDefaultMetrics();
+/**
+ * Metrics setup
+ */
+promClient.collectDefaultMetrics();
 
-app.get("/metrics", async (req, res) => {
-  res.set("Content-Type", promClient.register.contentType);
-  res.end(await promClient.register.metrics());
+const httpRequestCounter = new promClient.Counter({
+  name: "phone_store_http_requests_total",
+  help: "Total number of HTTP requests received",
+  labelNames: ["method", "route", "status_code"],
 });
 
+const httpRequestDuration = new promClient.Histogram({
+  name: "phone_store_http_request_duration_seconds",
+  help: "Duration of HTTP requests in seconds",
+  labelNames: ["method", "route", "status_code"],
+  buckets: [0.05, 0.1, 0.3, 0.5, 1, 2, 5],
+});
+
+/**
+ * App middleware
+ */
 app.use(cors());
 app.use(express.json());
 
+/**
+ * Database setup
+ */
 const DATABASE_URL =
   process.env.DATABASE_URL ||
   `postgres://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`;
@@ -25,27 +42,68 @@ const pool = new Pool({
   connectionString: DATABASE_URL,
 });
 
+/**
+ * Utility helpers
+ */
 function formatMoney(value) {
   return Number(value).toFixed(2);
 }
 
+function trackMetric(method, route, statusCode, endTimer) {
+  const labels = {
+    method,
+    route,
+    status_code: String(statusCode),
+  };
+
+  httpRequestCounter.inc(labels);
+  endTimer(labels);
+}
+
+/**
+ * Metrics endpoint
+ */
+app.get("/metrics", async (req, res) => {
+  try {
+    res.set("Content-Type", promClient.register.contentType);
+    res.end(await promClient.register.metrics());
+  } catch (error) {
+    console.error("Failed to generate metrics", error);
+    res.status(500).end("Failed to generate metrics");
+  }
+});
+
+/**
+ * Health endpoints
+ */
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok" });
 });
 
 app.get("/ready", async (req, res) => {
+  const endTimer = httpRequestDuration.startTimer();
+
   try {
     await pool.query("SELECT 1");
+    trackMetric(req.method, "/ready", 200, endTimer);
     res.status(200).json({ status: "ready" });
   } catch (error) {
+    trackMetric(req.method, "/ready", 500, endTimer);
     res.status(500).json({ status: "not ready", error: error.message });
   }
 });
 
+/**
+ * Product routes
+ */
 app.get("/api/products", async (req, res) => {
+  const endTimer = httpRequestDuration.startTimer();
   const { category } = req.query;
+
   const hasCategoryFilter =
-    typeof category === "string" && category.trim() !== "" && category !== "all";
+    typeof category === "string" &&
+    category.trim() !== "" &&
+    category !== "all";
 
   try {
     const result = await pool.query(
@@ -68,17 +126,21 @@ app.get("/api/products", async (req, res) => {
       [hasCategoryFilter ? category : null]
     );
 
+    trackMetric(req.method, "/api/products", 200, endTimer);
     res.json(result.rows);
   } catch (error) {
-    console.error(error);
+    console.error("Failed to fetch products", error);
+    trackMetric(req.method, "/api/products", 500, endTimer);
     res.status(500).json({ error: "Database error" });
   }
 });
 
 app.get("/api/products/:id", async (req, res) => {
+  const endTimer = httpRequestDuration.startTimer();
   const productId = Number.parseInt(req.params.id, 10);
 
   if (!Number.isInteger(productId)) {
+    trackMetric(req.method, "/api/products/:id", 400, endTimer);
     return res.status(400).json({ error: "Invalid product id" });
   }
 
@@ -103,23 +165,31 @@ app.get("/api/products/:id", async (req, res) => {
     );
 
     if (result.rowCount === 0) {
+      trackMetric(req.method, "/api/products/:id", 404, endTimer);
       return res.status(404).json({ error: "Product not found" });
     }
 
+    trackMetric(req.method, "/api/products/:id", 200, endTimer);
     return res.json(result.rows[0]);
   } catch (error) {
-    console.error(error);
+    console.error("Failed to fetch product by id", error);
+    trackMetric(req.method, "/api/products/:id", 500, endTimer);
     return res.status(500).json({ error: "Database error" });
   }
 });
 
+/**
+ * Order route
+ */
 app.post("/api/orders", async (req, res) => {
+  const endTimer = httpRequestDuration.startTimer();
   const customer = req.body?.customer ?? {};
   const rawItems = Array.isArray(req.body?.items) ? req.body.items : [];
   const customerFields = ["name", "email", "address", "city", "postcode"];
 
   for (const field of customerFields) {
     if (typeof customer[field] !== "string" || customer[field].trim() === "") {
+      trackMetric(req.method, "/api/orders", 400, endTimer);
       return res
         .status(400)
         .json({ error: `Customer ${field} is required` });
@@ -127,6 +197,7 @@ app.post("/api/orders", async (req, res) => {
   }
 
   if (rawItems.length === 0) {
+    trackMetric(req.method, "/api/orders", 400, endTimer);
     return res.status(400).json({ error: "At least one order item is required" });
   }
 
@@ -143,6 +214,7 @@ app.post("/api/orders", async (req, res) => {
   );
 
   if (invalidItem) {
+    trackMetric(req.method, "/api/orders", 400, endTimer);
     return res
       .status(400)
       .json({ error: "Each item must include a valid productId and quantity" });
@@ -166,6 +238,7 @@ app.post("/api/orders", async (req, res) => {
 
     if (productsResult.rowCount !== productIds.length) {
       await client.query("ROLLBACK");
+      trackMetric(req.method, "/api/orders", 400, endTimer);
       return res.status(400).json({ error: "One or more products were not found" });
     }
 
@@ -174,6 +247,7 @@ app.post("/api/orders", async (req, res) => {
     );
 
     let orderTotal = 0;
+
     const normalizedItems = items.map((item) => {
       const product = productsById.get(item.productId);
 
@@ -253,6 +327,8 @@ app.post("/api/orders", async (req, res) => {
 
     await client.query("COMMIT");
 
+    trackMetric(req.method, "/api/orders", 201, endTimer);
+
     return res.status(201).json({
       orderId: order.id,
       status: order.status,
@@ -268,7 +344,9 @@ app.post("/api/orders", async (req, res) => {
     });
   } catch (error) {
     await client.query("ROLLBACK");
-    console.error(error);
+    console.error("Failed to place order", error);
+
+    trackMetric(req.method, "/api/orders", 400, endTimer);
 
     return res.status(400).json({
       error: error.message || "Unable to place the order right now",
@@ -285,6 +363,7 @@ pool
   .then(() => {
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
+      console.log(`Metrics available on /metrics`);
     });
   })
   .catch((error) => {
