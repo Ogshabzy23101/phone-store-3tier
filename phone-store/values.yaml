@@ -1,0 +1,63 @@
+backend:
+  deploymentName: backend-deployment
+  serviceName: backend-service
+  replicaCount: 2
+  appLabel: backend
+  serviceAccountName: backend-sa
+  roleName: backend-role
+  roleBindingName: backend-rolebinding
+  nameSpace: phonestore-helm
+  containerName: backend
+  containerPort: 5000
+  servicePort: 5000
+  image:
+    repository: ogshabzy23101/phone-store-backend
+    tag: v3.2
+    pullPolicy: Always
+
+frontend:
+  deploymentName: frontend-deployment
+  serviceName: frontend-service
+  replicaCount: 2
+  appLabel: frontend
+  serviceAccountName: frontend-sa
+  roleName: frontend-role
+  roleBindingName: frontend-rolebinding
+  nameSpace: phonestore-helm
+  containerName: frontend
+  containerPort: 80
+  servicePort: 80
+  serviceType: ClusterIP
+  image:
+    repository: ogshabzy23101/phone-store-frontend
+    tag: v3.2
+    pullPolicy: Always
+  volume:
+    name: nginx-config
+  configmap:
+    name: frontend-nginx-config
+
+postgres:
+  deploymentName: postgres-deployment
+  appLabel: postgres
+  containerName: postgres
+  replicaCount: 1
+  secretName: postgres-secret
+  serviceName: postgres-service
+  port: 5432
+  containerPort: 5432
+  initVolumeName: postgres-init-volume
+  initConfigMapName: postgres-init-sql
+  auth:
+    user: phonestore_admin
+    password: phonestore_password
+    database: phonestore_db
+  image:
+    repository: postgres
+    tag: "15"
+    pullPolicy: IfNotPresent
+
+ingress:
+  ingressName: phone-store-ingress
+  ingressClass: nginx
+  host: anxiousphonestore.localhelm
