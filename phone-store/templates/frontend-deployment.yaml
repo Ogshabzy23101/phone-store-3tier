@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.frontend.deploymentName}}
+spec:
+  replicas: {{ .Values.frontend.replicaCount}}
+  selector:
+    matchLabels:
+      app: {{ .Values.frontend.appLabel}}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.frontend.appLabel}}
+    spec:
+      containers:
+      - name: {{ .Values.frontend.appLabel}}
+        image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
+        imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
+        ports:
+          - containerPort: {{ .Values.frontend.containerPort }}
+        volumeMounts:
+          - name: {{ .Values.frontend.volume.name}}
+            mountPath: /etc/nginx/conf.d/default.conf
+            subPath: default.conf
+      volumes:
+        - name: {{ .Values.frontend.volume.name}}
+          configMap:
+            name: {{ .Values.frontend.configmap.name}}
