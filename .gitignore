@@ -52,3 +52,10 @@ terraform.tfvars.json
 *.retry
 ansible.log
 ansible/inventory/*.ini
+
+# Secret files
+secret.*
+secrets.*
+
+# Helm package archives
+*.tgz
