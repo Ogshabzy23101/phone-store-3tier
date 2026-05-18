@@ -22,17 +22,17 @@ jobs:
 
       - name: Set up SSH key
         run: |
-          mkdir -p home/runner/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" > home/runner/.ssh/id_rsa
-          chmod 600 home/runner/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> home/runner/.ssh/known_hosts
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
       - name: Create inventory
         run: |
           mkdir -p infra/ansible/inventory
           cat > infra/ansible/inventory/hosts.ini <<EOF
           [web]
-          prod ansible_host=${{ secrets.EC2_HOST }} ansible_user=${{ secrets.EC2_USER }} ansible_ssh_private_key_file=home/runner/.ssh/id_rsa
+          ec2 ansible_host=${{ secrets.EC2_HOST }} ansible_user=${{ secrets.EC2_USER }} ansible_ssh_private_key_file=~/.ssh/id_rsa
           EOF
 
       - name: read version.txt
