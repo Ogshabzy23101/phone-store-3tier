@@ -1,3 +1,3 @@
-output "public_ip" {
-  value = aws_instance.tier3-phone.public_ip
+output "ec2_ip" {
+  value = aws_eip.tier3_eip.public_ip
 }
