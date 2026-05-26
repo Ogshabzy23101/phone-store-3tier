@@ -3,9 +3,9 @@ services:
     image: postgres:15
     container_name: phonestore_db
     environment:
-      POSTGRES_USER: phonestore_admin
-      POSTGRES_PASSWORD: phonestore_password
-      POSTGRES_DB: phonestore_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - phonestore_db_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
@@ -20,16 +20,16 @@ services:
     container_name: phonestore_backend
     environment:
       PORT: "5000"
-      DATABASE_URL: postgres://phonestore_admin:phonestore_password@db:5432/phonestore_db
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
     depends_on:
-        db:
-          condition: service_healthy
+      db:
+        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O - http://localhost:5000/ready >/dev/null 2>&1 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 3
-    restart: unless-stopped 
+    restart: unless-stopped
 
   frontend:
     image: ogshabzy23101/phone-store-frontend:${IMAGE_TAG}

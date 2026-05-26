@@ -1,0 +1,39 @@
+name: deploy helm on eks
+
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          aws-region: eu-west-2
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          role-duration-seconds: 900
+          role-session-name: github_action_aws_eks_deploy
+
+      - name: connect kubectl to eks on runner
+        run: |
+          aws eks update-kubeconfig --region eu-west-2 --name phone-store
+
+      - name: Login to Docker Hub
+        run: |
+          helm registry login registry-1.docker.io --username "${{ secrets.DOCKERHUB_USERNAME }}" --password "${{ secrets.DOCKERHUB_PASSWORD }}"
+
+      - name: Deploy Helm chart
+        run: |
+          helm upgrade --install phone-store \
+          oci://registry-1.docker.io/ogshabzy23101/phone-store \
+          -n phonestore \
+          --create-namespace

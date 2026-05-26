@@ -15,8 +15,16 @@
 
     - name: Copy docker-compose file
       copy:
-        src: ../../docker/docker-compose.prod.yml
+        src: "{{ playbook_dir }}/../../../deployment/docker/docker-compose.prod.yml"
         dest: "{{ app_dir }}/docker-compose.prod.yml"
+        owner: ubuntu
+        group: ubuntu
+        mode: "0644"
+
+    - name: Copy database init script
+      copy:
+        src: "{{ playbook_dir }}/../../../deployment/docker/init.sql"
+        dest: "{{ app_dir }}/init.sql"
         owner: ubuntu
         group: ubuntu
         mode: "0644"
@@ -28,9 +36,9 @@
         group: ubuntu
         mode: "0600"
         content: |
-          POSTGRES_USER=phonestore_admin
-          POSTGRES_PASSWORD=phonestore_password
-          POSTGRES_DB=phonestore_db
+          POSTGRES_USER={{ postgres_user }}
+          POSTGRES_PASSWORD={{ postgres_password }}
+          POSTGRES_DB={{ postgres_db }}
           IMAGE_TAG={{ image_tag }}
 
     - name: Validate docker-compose file
