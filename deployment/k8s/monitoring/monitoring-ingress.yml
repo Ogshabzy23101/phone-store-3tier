@@ -2,7 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: monitoring-ingress
-  namespace: observability
+  namespace: observibility
   labels:
     app.kubernetes.io/name: monitoring-ingress
 spec:

@@ -2,7 +2,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: backend-monitor
-  namespace: observability
+  namespace: observibility
   labels:
     release: monitoring
 spec:

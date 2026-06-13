@@ -51,4 +51,4 @@ spec:
               value: phone-store-backend
 
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
-              value: http://jaeger.observability.svc.cluster.local:4318/v1/traces
+              value: http://jaeger.observibility.svc.cluster.local:4318/v1/traces
