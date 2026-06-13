@@ -1,0 +1,3 @@
+ingress:
+  ingressName: phone-store-ingress
+  ingressClass: alb

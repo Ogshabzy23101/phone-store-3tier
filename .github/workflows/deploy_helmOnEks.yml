@@ -39,4 +39,5 @@ jobs:
           helm upgrade --install phone-store \
           oci://registry-1.docker.io/ogshabzy23101/phone-store \
           -n phonestore \
-          --create-namespace
+          --create-namespace \
+          -f deployment/helm/phone-store/values-prod.yaml
