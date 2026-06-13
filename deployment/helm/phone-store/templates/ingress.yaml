@@ -3,13 +3,23 @@ kind: Ingress
 metadata:
   name: {{ .Values.ingress.ingressName}}
   annotations:
+    {{- if eq .Values.ingress.ingressClass "alb" }}
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
+    {{- end }}
 spec:
   ingressClassName: {{ .Values.ingress.ingressClass }}
+
+    {{- if .Values.ingress.host }}
+  rules:
+    - host: {{ .Values.ingress.host }}
+      http:
+        paths:
+  {{- else }}
   rules:
     - http:
         paths:
+  {{- end }}
           - path: /
             pathType: Prefix
             backend:

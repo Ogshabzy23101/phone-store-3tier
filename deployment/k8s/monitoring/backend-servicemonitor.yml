@@ -2,9 +2,13 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: backend-monitor
+  namespace: observability
   labels:
     release: monitoring
 spec:
+  namespaceSelector:
+    matchNames:
+      - phonestore
   selector:
     matchLabels:
       app: backend

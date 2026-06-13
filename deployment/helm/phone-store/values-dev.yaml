@@ -1,0 +1,4 @@
+ingress:
+  ingressName: phone-store-ingress
+  ingressClass: nginx
+  host: anxiousphonestore.localhelm

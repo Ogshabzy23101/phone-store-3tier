@@ -1,14 +1,10 @@
 name: Deploy compose with Ansible
 
 on:
-  workflow_run:
-    workflows: ["Build and Push Docker Images"]
-    types:
-      - completed
+  workflow_dispatch:
 
 jobs:
   deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -42,4 +38,4 @@ jobs:
             --extra-vars "postgres_user=${{ secrets.POSTGRES_USER }}" \
             --extra-vars "postgres_password=${{ secrets.POSTGRES_PASSWORD }}" \
             --extra-vars "postgres_db=${{ secrets.POSTGRES_DB }}" \
-            --extra-vars "image_tag=${{ github.event.workflow_run.head_sha }}"
+            --extra-vars "image_tag=${{ github.sha }}"
