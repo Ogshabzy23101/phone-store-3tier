@@ -37,7 +37,7 @@ app.use(express.json());
  */
 const DATABASE_URL =
   process.env.DATABASE_URL ||
-  `postgres://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`;
+  `postgres://${process.env.POSTGRES_USER}:${process.env.POSTGRES_PASSWORD}@${process.env.POSTGRES_HOST}:${process.env.POSTGRES_PORT}/${process.env.POSTGRES_NAME}`;
 
 const pool = new Pool({
   connectionString: DATABASE_URL,
