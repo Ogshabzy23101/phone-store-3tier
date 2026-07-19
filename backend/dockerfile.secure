@@ -1,0 +1,82 @@
+#this docker file is an advance docker file with container security implementation
+
+# --------------------------------------------------
+# Stage 1: Install all dependencies and prepare app
+# --------------------------------------------------
+FROM node:22-alpine AS builder
+
+WORKDIR /app
+
+# Copy dependency files first.
+# Docker can reuse the npm install layer when application
+# code changes but package files do not.
+COPY package*.json ./
+
+# Install exact dependency versions from package-lock.json.
+# This includes dependencies and devDependencies.
+RUN npm ci
+
+# Copy the rest of the backend source code.
+COPY . .
+
+
+# --------------------------------------------------
+# Stage 2: Install production dependencies only
+# --------------------------------------------------
+FROM node:22-alpine AS production-dependencies
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+
+# Install only packages listed under "dependencies".
+# Packages under "devDependencies" are excluded.
+RUN npm ci --omit=dev && npm cache clean --force
+
+
+# --------------------------------------------------
+# Stage 3: Final secure runtime image
+# --------------------------------------------------
+FROM node:22-alpine AS runtime
+
+# this set production behaviour for Node.js and libraries.
+ENV NODE_ENV=production
+
+WORKDIR /app
+
+# Create a system group and non-root system user.
+RUN addgroup -S developers && \
+    adduser -S dami -G developers
+
+# Copy production dependencies from the dedicated dependency stage.
+COPY --from=production-dependencies \
+    --chown=dami:developers \
+    /app/node_modules \
+    ./node_modules
+
+# Copy package metadata from the builder stage.
+COPY --from=builder \
+    --chown=dami:developers \
+    /app/package.json \
+    /app/package-lock.json \
+    ./
+
+# Copy only the files required to run the application.
+COPY --from=builder \
+    --chown=dami:developers \
+    /app/index.js \
+    ./index.js
+
+# Document the port used by the application.
+EXPOSE 5000
+
+# Run all following instructions and the application as non-root.
+USER dami
+
+# Basic container health check.
+# Your backend should provide a /health endpoint.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD wget -qO- http://127.0.0.1:5000/health || exit 1
+
+# Start Node directly so it receives Linux termination signals correctly.
+CMD ["node", "index.js"]

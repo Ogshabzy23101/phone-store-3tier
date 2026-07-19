@@ -1,0 +1,16 @@
+node_modules
+npm-debug.log*
+.git
+.gitignore
+.env
+.env.*
+coverage
+dist
+build
+Dockerfile*
+docker-compose*
+README.md
+.vscode
+.idea
+vite.config.js
+eslint.config.js
