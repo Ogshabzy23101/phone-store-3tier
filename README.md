@@ -340,7 +340,7 @@ Important caveat for this repo:
 
 ## CI/CD Overview
 
-Workflow documentation lives in [` .github/workflows/README.md`](.github/workflows/README.md).
+Workflow documentation lives in [`.github/workflows/README.md`](.github/workflows/README.md).
 
 Current GitHub Actions workflows:
 
