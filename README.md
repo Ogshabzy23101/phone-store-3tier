@@ -1,30 +1,90 @@
-# phone-store-3tier
+# Phone Store 3-Tier DevOps Project
 
-`phone-store-3tier` is a DevOps learning project built around a small 3-tier e-commerce application. The goal of the repository is not only to run a React frontend, a Node.js API, and a PostgreSQL database, but also to show how the same application can be packaged, versioned, deployed, observed, and verified across multiple environments.
+A hands-on DevOps portfolio project built around a three-tier e-commerce application.
 
-The project includes:
+The application consists of:
 
-- a React/Vite frontend served by Nginx in production
-- a Node.js/Express backend API
-- a PostgreSQL database seeded with products and order tables
-- Docker and Docker Compose for local and Compose-based production workflows
-- raw Kubernetes manifests for frontend, backend, Postgres, ingress, secrets, and monitoring resources
-- a Helm chart for templated Kubernetes deployment
-- GitHub Actions workflows for linting, image publishing, deployment orchestration, and version checks
-- Prometheus metrics exposure and Grafana/Prometheus ingress integration
+- React/Vite frontend
+- Node.js/Express backend API
+- PostgreSQL database
 
-## Project Goals
+The main purpose of the project is to demonstrate how an application can be containerised, deployed, automated, monitored and troubleshot across local Docker, Kubernetes and AWS environments.
 
-This repository is designed as a portfolio-style DevOps project with practical learning goals:
+## DevOps Capabilities Demonstrated
 
-- understand 3-tier application structure
-- containerize frontend and backend services
-- manage local multi-service development with Docker Compose
-- deploy the stack with Kubernetes manifests and a Helm chart
-- introduce observability using Prometheus metrics and ServiceMonitor integration
-- automate build, publish, verification, and versioning workflows with GitHub Actions
+This project includes practical work with:
+
+- Docker and Docker Compose
+- Kubernetes
+- Amazon EKS
+- Terraform
+- Helm
+- Ansible
+- GitHub Actions
+- CI/CD
+- AWS networking and IAM
+- Ingress and load balancing
+- Prometheus/Grafana monitoring
+- application health and readiness checks
+- troubleshooting and incident investigation
+
+## Current Project Status
+
+### Completed
+
+- 3-tier application running with frontend, backend and PostgreSQL
+- development and production-style Docker workflows
+- Kubernetes manifests for the application stack
+- Helm-based deployment
+- Terraform-managed AWS infrastructure
+- Amazon EKS deployment path
+- CI workflow for frontend/backend linting
+- Docker image build and publishing to docker hub
+- Ansible-based deployment workflow
+- deployment smoke tests
+- Prometheus application metrics
+- health and readiness endpoints
+- troubleshooting documentation
+
+### Currently Improving
+
+- EKS and application observability
+- production-style CI/CD
+- DevSecOps checks
+- stronger secret management
+- portfolio documentation and architecture diagrams
+
+### Known Lab Limitations
+
+- some secrets/configuration are intentionally demo-only and are not production patterns
+- infrastructure is designed for learning and cost-controlled experimentation
+- some deployment paths are retained for comparison and learning rather than representing one final production architecture
 
 ## Architecture Overview
+
+User
+↓
+Ingress / Load Balancer
+↓
+Frontend
+↓
+Backend API
+↓
+PostgreSQL
+
+GitHub Actions
+↓
+Docker Hub
+↓
+Deployment
+
+Terraform
+↓
+AWS / EKS infrastructure
+
+Prometheus / Grafana
+↓
+Metrics and monitoring
 
 The application follows a standard 3-tier pattern:
 
