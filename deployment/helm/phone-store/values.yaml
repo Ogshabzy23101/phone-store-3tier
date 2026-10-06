@@ -49,9 +49,9 @@ postgres:
   initVolumeName: postgres-init-volume
   initConfigMapName: postgres-init-sql
   auth:
-    user: phonestore_admin
-    password: phonestore_password
-    database: phonestore_db
+    user: example
+    password: example
+    database: example
   image:
     repository: postgres
     tag: "15"
