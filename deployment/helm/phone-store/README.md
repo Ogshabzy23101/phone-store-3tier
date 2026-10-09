@@ -12,7 +12,7 @@ The chart packages the main Kubernetes resources for:
 - ingress
 - supporting ConfigMap, Secret, and RBAC resources
 
-It is useful when you want a more parameterized deployment workflow than applying raw manifests one by one.
+It is useful for a more parameterized deployment workflow than applying raw manifests one by one.
 
 The repository still keeps the raw Kubernetes manifests in [`infra/k8s/`](../infra/k8s) for learning and comparison. That is intentional: the raw manifests help explain the underlying Kubernetes resources, while the Helm chart shows how those same resources can be templated and reused.
 
@@ -35,8 +35,8 @@ This chart represents the templated Kubernetes deployment path for the applicati
 
 It complements, rather than replaces, the raw manifests:
 
-- use `infra/k8s/` when you want to learn each resource directly
-- use `phone-store/` when you want a more reusable Helm-based workflow
+- use `infra/k8s/` when i want to learn or inspect each resource directly
+- use `phone-store/` when i want a more reusable Helm-based workflow
 
 ## Important Commands
 
@@ -94,7 +94,12 @@ The Helm chart focuses on the application stack. Monitoring integration resource
 
 ## Security Notes
 
-- any Secret templates or values in this repo should be treated as local/demo-only
-- committed Kubernetes Secret manifests are not production-safe
-- prefer a `secret.example.yml` pattern in Git and keep real `secret.yml` files ignored locally
-- for production, use a proper secret-management solution such as AWS Secrets Manager, External Secrets Operator, Sealed Secrets, or SOPS
+- The Helm `secret` template defines the structure of the Kubernetes Secret resource. It contains references to Helm values, but it does not contain the real credentials directly.
+
+- Sensitive values such as the database username, password, and other credentials will be stored in a separate local values file, for example `values-secret.yaml`.
+
+- The `values-secret.yaml` file will be passed to Helm at deployment time so that the sensitive values are injected into the Secret template when the chart is rendered.
+
+- `values-secret.yaml` will be excluded from Git using `.gitignore` so that real credentials are never committed to the repository.
+
+- This approach is suitable for this current learning environment. In a production environment, secrets will preferably be retrieved from a dedicated secret-management system such as AWS Secrets Manager, External Secrets Operator, SOPS, or Sealed Secrets.
